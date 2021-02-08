@@ -47,7 +47,6 @@ def save_file(row):
 
     #Check if directory already exists, otherwise create directory to put files in
     dir_path = 'trimmed/'
-    dir_check(dir_path)
 
     file_name = (str(row['id_segment']) + '_' + str(row['set']) 
                  + '_' + str(row['video']) + '.mp4')
@@ -60,6 +59,9 @@ def save_file(row):
     return dir_path
         
 
+"""Here Goes main function"""
+
+dir_check('trimmed/')
 #for over rows in mapping
 for index, row in df.iterrows():
     print('trimming ' + str(index) + ' with start=' +
