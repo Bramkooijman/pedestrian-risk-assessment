@@ -1,4 +1,4 @@
-# Thesis
+# Thesis blablab
 Git for sharing codefiles regarding my master-thesis
 
 ## Dropbox containing files & info about my thesis
