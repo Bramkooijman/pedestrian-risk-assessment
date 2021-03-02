@@ -48,12 +48,17 @@ def save_file(row):
     else:
         dir_path = (dir_path + row['traffic_rules'] + '/'
                     + row['cross-look'] + '_' + file_name)
-    print('saved to ' + dir_path + ' with length of ' + str(get_length(dir_path)))
     return dir_path
 
 
 def get_length(input_video):
-    result = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', input_video], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    result = subprocess.run(['ffprobe',
+                             '-v', 'error',
+                             '-show_entries', 'format=duration',
+                             '-of', 'default=noprint_wrappers=1:nokey=1',
+                             input_video],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
     return float(result.stdout)
 
 
@@ -62,18 +67,21 @@ if __name__ == "__main__":
     dir_check('trimmed/')
     # for over rows in mapping
     for index, row in df.iterrows():
-        video_file = choose_files(row['set'], row['video'])
-        if video_file:
+        file_in = choose_files(row['set'], row['video'])
+        if file_in:
             print('trimming ' + str(index) + ' with start='
                   + str(row['start']) + ' Duration = 15s')
+            file_out = save_file(row)
             subprocess.call(['ffmpeg',
-                             '-i', video_file,
+                             '-ss', row['start'],
+                             '-t', '00:00:15:000',
+                             '-i', file_in,
                              '-y',
                              '-loglevel', 'quiet',
-                             '-ss', row['start'],
-                             '-t', '15',
-                             '-c', 'copy',
-                             save_file(row)])
+                             # '-c', 'copy',
+                             file_out])
+            print('saved to ' + file_out + ' with length of ' + str(get_length(file_out)))
+
         else:
             print('video ' + str(row['video']) + ' from set ' + str(row['set'])
                   + ' could not be loaded')
