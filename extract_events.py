@@ -48,7 +48,7 @@ def save_file(row):
     else:
         dir_path = (dir_path + row['traffic_rules'] + '/'
                     + row['cross-look'] + '_' + file_name)
-    print('saved to ' + dir_path + ' length of ' + str(get_length(dir_path)))
+    print('saved to ' + dir_path + ' with length of ' + str(get_length(dir_path)))
     return dir_path
 
 
@@ -67,11 +67,11 @@ if __name__ == "__main__":
             print('trimming ' + str(index) + ' with start='
                   + str(row['start']) + ' Duration = 15s')
             subprocess.call(['ffmpeg',
+                             '-i', video_file,
                              '-y',
                              '-loglevel', 'quiet',
                              '-ss', row['start'],
                              '-t', '15',
-                             '-i', video_file,
                              '-c', 'copy',
                              save_file(row)])
         else:
