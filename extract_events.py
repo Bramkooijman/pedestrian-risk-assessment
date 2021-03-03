@@ -84,11 +84,11 @@ if __name__ == "__main__":
             file_out = save_file(row)
             subprocess.call(['ffmpeg',
                              '-ss', row['start'],
-                             '-t', '00:00:15:000',
+                             '-t', '00:00:15.000',
                              '-i', file_in,
                              '-y',
                              '-loglevel', 'quiet',
-                             # '-c', 'copy',
+                             #'-c', 'copy',
                              file_out])
             print('saved to ' + file_out + ' with length of ' + str(get_length(file_out)))
 
