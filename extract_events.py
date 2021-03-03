@@ -28,7 +28,17 @@ def dir_check(path):
 # Function which chooses the correct file to trim
 def choose_files(set_id, video_id):
     file_path = os.path.join(VIDEOS_DIR, 'set' + str(set_id))
-    file_path = os.path.join(file_path, 'video_000' + str(video_id) + '.mp4')
+    if video_id > 0 and video_id < 10:
+        prefix = 'video_000'
+    elif video_id >= 10 and video_id < 100:
+        prefix = 'video_00'
+    elif video_id >= 100 and video_id < 1000:
+        prefix = 'video_0'
+    else:
+        print('wrong video_id given', video_id)
+        return None
+
+    file_path = os.path.join(file_path, prefix + str(video_id) + '.mp4')
     if os.path.isfile(file_path):
         return file_path
     else:
