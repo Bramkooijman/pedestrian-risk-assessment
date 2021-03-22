@@ -92,18 +92,22 @@ cheaters=find(y>1);
 %Create array of all rows which are cheaters
 cheaters=unique(cheaters);
 
-%Fill cheater matrix with data of all cheaters
-cf_cheaters(1,:)=headers;
+%Fill cheater matrix with data of cheaters (#33 worker_code, #8 worker_ID)
+title = {'Worker_ID', 'Worker_Code'};
+cheater_id = {};
+cheater_wc = {};
 for i=(1:size(cheaters))
     cheater_row=cheaters(i); 
-    cf_cheaters(i+1,:)=raw_cf(cheater_row,:);
+    cheater_id(i)=raw_cf(cheater_row,8);
+    cheater_wc(i)=raw_cf(cheater_row,33);
 end
 
 % Convert cells to table
-cheater_table = cell2table(cf_cheaters);
+cheater_table = [title;cheater_id,cheater_wc];
+cheater_table = cell2table(cheater_table);
  
 % Write the table to a CSV file
-writetable(cheater_table,'f1730370_cheaters.csv','WriteVariableNames',0);
+writetable(cheater_table,'f1730370_cheaters.csv', 'WriteVariableNames', 0);
 
 %% Remove invalid data from main matrix and create a new one
 
