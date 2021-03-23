@@ -2,7 +2,7 @@
 clear variables;close all force;clc
 opengl hardware % use OpenGL hardware for better figure quality
 %% Read Excel files with raw data
-%[~,~,raw_rt]=xlsread('keypress_data.xlsx','A1:HSL921'); % import Excel file with RT data from the Database
+[~,~,raw_rt]=xlsread('keypress_raw.xlsx','A1:HSL921'); % import Excel file with RT keypress data from the Database
 [~,~,headers]=xlsread('f1730370.xlsx','A1:BK1');
 [~,~,raw_cf]=xlsread('f1730370.xlsx','A2:BK1238'); % import Excel file with Figure-Eight data
 temp=raw_cf(:,9);Country=cell(size(raw_cf,1),1);for i=1:length(temp);try Country(i)=unique(temp(i));catch error;Country(i)={'NaN'};end;end % Country data from the Figure-Eight data
@@ -22,15 +22,26 @@ temp=raw_cf(:,19);for i=1:length(temp);try X(i,8)=1+cell2mat(temp(i));catch erro
 temp=raw_cf(:,20:26);X(:,9:15)=1*strcmp(temp,'0_times_per_month')+2*strcmp(temp,'1_to_3_times_per_month')+3*strcmp(temp,'4_to_6_times_per_month')+4*strcmp(temp,'7_to_9_times_per_month')+5*strcmp(temp,'10_or_more_times_per_month')-1*strcmp(temp,'i_prefer_not_to_respond'); % Driving behaviour DBQ
 temp=raw_cf(:,30);for i=1:length(temp);try if strcmp(temp(i),'?'); X(i,16)=NaN;else;X(i,16)=cell2mat(temp(i));end;catch error;X(i,16)=NaN;end;end % in_which_year_do_you_think_that_most_cars_will_be_able_to_drive_fully_automatically_in_your_country_of_residence
 temp=find(X(:,16)<2018);X(temp,16)=NaN; % People who report a number less than 2014
-%temp=raw_cf(:,33);X(:,17)=temp; %Worker codes of the people
 
 for i=1:size(raw_cf,1);X(i,21)=24*3600*(datenum(raw_cf{i,2})-datenum(raw_cf{i,4}));end %% Compute survey time and store in the 21th column of the X matrix
 X(:,22)=tiedrank(X(:,21))./size(X,1); % ranking the survey time
 X(X<=0)=NaN; % Put missing values (0) or no response (-1) at NaN
 X(isnan(sum(X(:,9:15),2)),9:15)=NaN; % for the DBQ put all 7 items at NaN if any of the 7 items is NaN
 X(:,9:15)=tiedrank(X(:,9:15))./repmat(sum(~isnan(X(:,9:15))),size(X,1),1); % ranking of DBQ scores so that these scores become comparable between surveys
+
+%% defining useful variables
+worker_code_col = 33;
+worker_ip_col = 8;
+
+
+%% Testcode extract workercodes 
+%Worker codes of the people
+
+wc_array = string(raw_cf(:,worker_code_col));
+
 %% Extract participant IDs from Figure-Eight data
 X(:,18)=cell2mat(raw_cf(:,1)); % Store Figure-Eight ID in the 18th column
+%What does this do?
 % for i=1:size(raw_cf,1)
 %     id_str = raw_cf{i,57};
 %     X(i,19) = str2double(id_str(regexp(id_str,'DANGER')+6:end));
@@ -71,17 +82,17 @@ invalid4=find(y>1); % respondents who completed the survey more than once (i.e.,
 
 %% Find double worker codes in the data
 %transfer cell data to array of strings
-y=NaN(size(raw_cf(:,33)));
-WCCF=strings(size(raw_cf(:,33)));
-for i=1:size(raw_cf(:,33),1)
-   WCCF(i)=string(raw_cf(i,33));
+y=NaN(size(raw_cf(:,worker_code_col)));
+WCCF=strings(size(raw_cf(:,worker_code_col)));
+for i=1:size(raw_cf(:,worker_code_col),1)
+   WCCF(i)=string(raw_cf(i,worker_code_col));
 end
 for i=1:size(X,1)
     temp=find(WCCF==WCCF(i));
-    if length(temp)==1 % if the IP address occurs only once
+    if length(temp)==1 % if the workercode occurs only once
         y(i)=1; % keep
-    elseif length(temp)>1 % if the IP addres occurs more than once
-        y(temp(1))=1; % keep the first survey for that IP address
+    elseif length(temp)>1 % if the worker_code occurs more than once
+        y(temp(1))=1; % keep the first survey for that worker code address
         y(temp(2:end))=2; % no not keep the other ones
     end
 end
@@ -89,18 +100,17 @@ cheaters=find(y>1);
 
 %% Create table of cheaters
 
-%Create array of all rows which are cheaters
-cheaters=unique(cheaters);
-
 %Fill cheater matrix with data of cheaters (#33 worker_code, #8 worker_ID)
 title = {'Worker_ID', 'Worker_Code'};
 cheater_id = {};
 cheater_wc = {};
-for i=(1:size(cheaters))
-    cheater_row=cheaters(i); 
-    cheater_id(i)=raw_cf(cheater_row,8);
-    cheater_wc(i)=raw_cf(cheater_row,33);
-end
+
+%get all worker codes of the cheaters
+[~,idx,~]=unique(raw_cf(cheaters,worker_code_col)); %filter out all double and triple codes from cheaters.
+cheaters=cheaters(idx); %gets indexes of all the cheaters, to get all unique cheatesr
+
+cheater_wc=raw_cf(cheaters,worker_code_col); %save all cheaters worker codes
+cheater_id=raw_cf(cheaters,worker_ip_col); %save all cheaters worker ids
 
 % Convert cells to table
 cheater_table = [title;cheater_id,cheater_wc];
